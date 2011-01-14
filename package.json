@@ -1,0 +1,22 @@
+{
+  "name": "regexify",
+  "description": "A package to make dealing with simple RegExp just a little less painfull",
+  "version": "0.0.1",
+  "homepage": "https://github.com/halfhalo/node-regexify",
+  "repository": "git://github.com/halfhalo/node-regexify.git",
+  "author": "Patrick Roberts <patrick@silentbluesystems.com>",
+  "main": "regexMaster",
+  "directories": {
+    "lib": "lib"
+  },
+  "modules":{
+	"regexClient":"./lib/client"
+  },
+{ "dependencies" :
+  { "underscore" : "*"
+  }
+},
+  "engines": {
+    "node": "*"
+  }
+}

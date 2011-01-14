@@ -1,5 +1,5 @@
 require('underscore');
-var regexMatch = require('./client')
+var regexMatch = require('./lib/client')
  var regex = exports;
 //RegexMaster controls all regex clients and allows for global matching and testing of all associated regex objects
 var master = regex.master = function()
@@ -28,6 +28,7 @@ master.prototype.new = function(regex, cb, cat)
 master.prototype.construct = function(regex)
  {
     m = new regexMatch.client();
+	if(regex)
     m.if(regex);
     this.matches.push(m);
     return m;
