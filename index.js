@@ -52,7 +52,7 @@ master.prototype.match = function(str,cat)
 //TODO: Function
 master.prototype.all = function()
  {
-
+	return this.matches
     }
 //Remove a regex object that matches the str
 //TODO: Function

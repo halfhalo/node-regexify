@@ -1,9 +1,9 @@
 require('underscore');
 var regex = exports;
 //RegexMatch is the client module to regexMaster and does all the procesing for each regex object.  build is a boolean that determines if the internal object is built on every new addition(default) or only when a match is called(and only once);
-var client = regex.client = function(build)
+var client = regex.client = function(alwaysBuild)
  {
-	this.build=build || true;
+	this.alwaysBuild=alwaysBuild || true;
     this.entries = [];
     this.builtRegex = [];
     this.ignore = [];
@@ -32,6 +32,87 @@ client.prototype.limit=function(str)
 	else
 	return this;
 }
+client.prototype.each=function(str,count)
+{
+	count=count||1
+	if(str)
+	{
+		var m=this.toRegex(str);
+		for(i=0;i<count;i++)
+		{
+			this.entries.push(m);
+		}
+		if(this.alwaysBuild)
+		    this.makeRegex()
+
+	}
+		return this;
+}
+//Takes in regular regex and adds a space for it in the fields object, and also can take in a name to assign it
+client.prototype.parse=function(regex,name)
+{
+	var obj={};
+	obj.orig=regex;
+	obj.reg=regex;
+	obj.fields=[name];
+	obj.options=[];
+	this.entries.push([obj])
+	if(this.alwaysBuild)
+	    this.makeRegex()
+	return this;
+}
+//Builds a matching string using %<char>, where char can be n,s,i, or m.  n=newline, s=space, i=ignore, m=normal;
+client.prototype.build=function(str,arr)
+{
+	arr=arr||[]
+	if(str)
+	{
+		var obj={};
+		arr=arr.reverse()
+		obj.fields=[];
+		var res=str.replace(/%(n|s|i|m|d)/g,function(key,val){
+			switch(val)
+			{
+				case 'm':
+				default:
+					if(arr.length>0)
+						obj.fields.push(arr.pop())
+					else
+						obj.fields.push(0)
+					return "([^\\s]*)";
+				break;
+				case 'n':
+				if(arr.length>0)
+					obj.fields.push(arr.pop())
+				else
+					obj.fields.push(0)
+					return "([\\S\\s]*)";
+				break;
+				case 's':
+				if(arr.length>0)
+					obj.fields.push(arr.pop())
+				else
+					obj.fields.push(0)
+					return "(.*)";
+				break;
+				case 'd':
+				if(arr.length>0)
+					obj.fields.push(arr.pop())
+				else
+					obj.fields.push(0)
+					return "([\\d]*)";
+				break;
+			}
+		})
+	}
+	obj.reg=res
+	obj.options=[];
+	obj.orig=str;
+	this.entries.push([obj])
+	if(this.alwaysBuild)
+	    this.makeRegex()
+	return this;
+}
 client.prototype.allow=function(str)
 {
 	if(str)
@@ -50,7 +131,7 @@ client.prototype.or = function(regex)
     var t = this.entries.pop();
     t.push(m);
     this.entries.push(t);
-if(this.build)
+if(this.alwaysBuild)
     this.makeRegex()
     return this;
 }
@@ -68,7 +149,7 @@ if = function(regex)
  {
     var m = this.toRegex(regex);
     this.entries.push([m]);
-if(this.build)
+if(this.alwaysBuild)
     this.makeRegex();
     return this;
 }
@@ -81,7 +162,7 @@ client.prototype.then = function(str)
         fields: []
     };
     this.entries.push([m]);
-if(this.build)
+if(this.alwaysBuild)
     this.makeRegex();
     return this;
 }
@@ -180,6 +261,11 @@ else
 
 
 }
+//Like .or but on two previous additions
+client.prototype.merge=function()
+{
+	return this;
+}
 //Runs test on all the regex objects
 //TODO: Function
 client.prototype.test = function(str)
@@ -196,7 +282,7 @@ client.prototype.ignore = function(regex)
 client.prototype.match = function(str,cat)
  {
 	var self=this;
-	if(this.build)
+	if(this.alwaysBuild)
 	{}
 	else
 	{
@@ -215,7 +301,7 @@ client.prototype.match = function(str,cat)
             obj.orig=r;
             for (i = 1; i < match.length; i++)
             {
-                if (r.fields[i - 1])
+                if (r.fields[i - 1] && isNaN(r.fields[i-1]))
                 {
 					if(r.fields[i - 1].indexOf('[]')!=-1)
 					{
@@ -236,7 +322,7 @@ client.prototype.match = function(str,cat)
                 }
                 else
                 {
-                    obj.fields[i - 1] = match[i]
+                    obj.fields[obj.fields.length] = match[i]
                 }
             }
         }
@@ -268,7 +354,7 @@ client.prototype.first = function(regex)
 	{
 		var m=this.toRegex(regex);
 		this.before.push([m]);
-		if(this.build)
+		if(this.alwaysBuild)
 		this.makeRegex()
 	}
 	return this;
@@ -280,7 +366,7 @@ client.prototype.last = function(regex)
 	{
 		var m=this.toRegex(regex);
 		this.after.push([m])
-		if(this.build)
+		if(this.alwaysBuild)
 		this.makeRegex()
 	}
 	return this;
