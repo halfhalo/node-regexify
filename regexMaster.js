@@ -44,6 +44,8 @@ master.prototype.match = function(str,cat)
         {}
         else
         {
+	
+						res=null
             res = m.match(str,cat)
         }
     })
